@@ -45,7 +45,7 @@ class OrbitPropagator:
         self.perts = perts
 
         self.stop_conditions_dictionary = sc
-        self.stop_conditions_map = { 'max_alt': self.check_max_alt, 'min_alt': self.check_min_alt}
+        self.stop_conditions_map = { 'max_alt': self.check_max_alt, 'min_alt': self.check_min_alt, 'escape_velocity': self.check_escape_velocity}
         self.stop_conditions_functions = [self.check_deorbit]
 
         for key in self.stop_conditions_dictionary.keys():
@@ -73,6 +73,12 @@ class OrbitPropagator:
             return False
         else:
             return True
+            
+    def check_escape_velocity(self):
+        if t.escape_velocity(np.linalg.norm(self.ys[self.step,:3]), self.cb['mu']) < np.linalg.norm(self.ys[self.step, 3:6]):
+            print("Spacecraft reached escape velocity after %.1f seconds."  %self.ts[self.step])
+            return False
+        return True
 
     def check_stop_conditions(self):
         for sc in self.stop_conditions_functions:
@@ -174,6 +180,8 @@ class OrbitPropagator:
 
         a = -r*self.cb['mu']/norm_r**3
 
+        dmdt = 0
+
         if self.perts['J2']:
             z2 = r[2]**2
             r2 = norm_r**2
@@ -197,8 +205,8 @@ class OrbitPropagator:
             a+= self.perts['thrust_direction'] * t.normed(v) * self.perts['thrust']/mass/1000.0
 
             dmdt = -self.perts['thrust']/self.perts['isp']/9.81
-
-        return [vx,vy,vz,a[0],a[1],a[2],dmdt]
+               
+        return [vx,vy,vz,a[0],a[1],a[2],dmdt]   
     
     def plot_3d(self,show_plot= False, save_plot = False, title="3D Plot"):
         fig = plt.figure(figsize=(12,6))

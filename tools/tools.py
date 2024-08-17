@@ -34,8 +34,11 @@ def plot_n_orbits(rs,labels,cb=pd.earth,show_plot= False, save_plot = False, tit
         u,v,w = [[l,0,0],[0,l,0],[0,0,l]]
         ax.quiver(x,y,z,u,v,w,color='k')
 
-        max_val=np.max(np.abs(rs))
-    
+        #Ugly fix to find max pos value between planets and roadster.
+        max_val1=np.max(np.abs(rs[:-1]))
+        max_val2=np.max(np.abs(rs[-1]))
+        max_val = max_val1 if max_val1 > max_val2 else max_val2 
+
         ax.set_xlim([-max_val,max_val])
         ax.set_ylim([-max_val,max_val])
         ax.set_zlim([-max_val,max_val])
@@ -54,7 +57,8 @@ def plot_n_orbits(rs,labels,cb=pd.earth,show_plot= False, save_plot = False, tit
             plt.savefig(title+'.png',dpi=300)
 
 #oes = Orbital elements
-def OrbElems2rv(oes,a,deg,mu=pd.earth['mu']):
+def OrbElems2rv(oes,a=True,deg=True,mu=pd.earth['mu']):
+
     
     if a:
         a, e, i, tanom, argOfPrge, rAscnANode = oes
@@ -231,19 +235,19 @@ def rv2OEs(state_vector,mu = pd.earth['mu'], deg=False, print = False):
 
 def rv2OEs2(r,v, mu = pd.earth['mu'], degrees = False, print = False):
     
-    r_norm = np.linalg.norm(r)
-    v_norm = np.linalg.norm(v)
+    r_norm = normed(r)
+    v_norm = normed(v)
 
     h = np.cross(r,v)
-    h_norm = np.linalg.norm(h)
+    h_norm = normed(h)
 
     i = m.acos(h[2]/h_norm)
 
     e = ((v_norm**2-mu/r_norm)*r-np.dot(r,v)*v)/mu
-    e_norm = np.linalg.norm(e)
+    e_norm = normed(e)
 
     N = np.cross([0,0,1],h)
-    N_norm = np.linalg.norm(N)
+    N_norm = normed(N)
 
     RAAN = m.acos(N[0]/N_norm)
     if N[1]<0: RAAN=2*np.pi-RAAN
@@ -284,3 +288,6 @@ def find_rho_z(z,zs = pd.earth['zs'],rhos=pd.earth['rhos']):
             return [[rhos[n],rhos[n+1]],[zs[n],zs[n+1]]]
 
     return [[0,0,0],[0,0,0]]
+
+def escape_velocity(r, mu = pd.earth['mu']):
+    return m.sqrt(2*mu/r)

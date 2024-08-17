@@ -36,5 +36,5 @@ def get_spk_binary_data(bsp_kernel_file, display = False):
 
 def timecov2array(tcs,steps):
     arr = np.zeros((steps,1))
-    arr[:,0] = np.linspace(tcs[0][0], tcs[0][1], steps)
+    arr[:,0] = np.linspace(tcs[0], tcs[1], steps)
     return arr
